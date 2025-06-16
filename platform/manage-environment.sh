@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Environment Manager Script
-# Usage: ./manage-environment.sh [create|delete] [environment-name] [app-name] [optional: image]
+# Usage: ./manage-environment.sh [create|delete|status] [environment-name] [app-name] [optional: image]
 
 ACTION=$1
 ENV_NAME=$2
@@ -49,6 +49,34 @@ function delete_environment() {
     echo "Environment deletion initiated"
 }
 
+function check_status() {
+    echo "Checking status for environment: $ENV_NAME-$APP_NAME"
+    echo "================================================"
+    
+    NAMESPACE="$ENV_NAME-$APP_NAME"
+    
+    # Check if namespace exists
+    if ! kubectl get namespace "$NAMESPACE" &>/dev/null; then
+        echo "Environment $NAMESPACE does not exist!"
+        exit 1
+    fi
+    
+    # Show pods with status and images
+    echo -e "\nPODS STATUS:"
+    kubectl get pods -n "$NAMESPACE" -o wide
+    
+    echo -e "\nPOD IMAGES:"
+    kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' | column -t
+    
+    # Show all resources in namespace
+    echo -e "\nALL RESOURCES:"
+    kubectl get all -n "$NAMESPACE"
+    
+    # Show events if any issues
+    echo -e "\nRECENT EVENTS:"
+    kubectl get events -n "$NAMESPACE" --sort-by='.lastTimestamp' | tail -5
+}
+
 # Main logic
 case $ACTION in
     create)
@@ -65,11 +93,19 @@ case $ACTION in
         fi
         delete_environment
         ;;
+    status)
+        if [ -z "$ENV_NAME" ] || [ -z "$APP_NAME" ]; then
+            echo "Usage: ./manage-environment.sh status [environment-name] [app-name]"
+            exit 1
+        fi
+        check_status
+        ;;
     *)
-        echo "Usage: ./manage-environment.sh [create|delete] [environment-name] [app-name]"
+        echo "Usage: ./manage-environment.sh [create|delete|status] [environment-name] [app-name]"
         echo "Examples:"
         echo "  ./manage-environment.sh create dev myapp nginx:latest"
         echo "  ./manage-environment.sh delete dev myapp"
+        echo "  ./manage-environment.sh status dev myapp"
         exit 1
         ;;
 esac
