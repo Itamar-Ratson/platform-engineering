@@ -1,0 +1,19 @@
+# Environment configuration
+environment:
+  name: dev  # Environment name (dev, staging, prod)
+  
+# Application configuration
+app:
+  name: sample-app
+  image: nginx:latest  # Default app image
+  replicas: 1
+  port: 80
+  
+# Resource limits
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"

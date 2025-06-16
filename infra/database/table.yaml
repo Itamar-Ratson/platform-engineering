@@ -1,0 +1,12 @@
+apiVersion: dynamodb.services.k8s.aws/v1alpha1
+kind: Table
+metadata: 
+  name: my-dynamodb-table
+spec:
+  tableName: my-dynamodb-table
+  attributeDefinitions:
+    - attributeName: string
+      attributeType: string
+  keySchema:
+    - attributeName: weather
+      keyType: HASH
