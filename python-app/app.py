@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 
-CHART_PATH = "../platform/environment-manager"
+CHART_PATH = "./environment-manager"
 
 def run_command(cmd):
     """Execute shell command and return output"""
