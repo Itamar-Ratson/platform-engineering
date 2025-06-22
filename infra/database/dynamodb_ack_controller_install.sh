@@ -4,7 +4,7 @@
 
 # Set up ENV:
 
-export AWS_REGION=eu-central-1
+export AWS_REGION=eu-north-1
 export SERVICE=dynamodb
 export RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/${SERVICE}-controller/releases/latest | jq -r '.tag_name | ltrimstr("v")')
 export ACK_SYSTEM_NAMESPACE=ack-system

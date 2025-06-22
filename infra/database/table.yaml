@@ -5,8 +5,9 @@ metadata:
 spec:
   tableName: my-dynamodb-table
   attributeDefinitions:
-    - attributeName: string
-      attributeType: string
+    - attributeName: weather
+      attributeType: S
   keySchema:
     - attributeName: weather
       keyType: HASH
+  billingMode: PAY_PER_REQUEST
