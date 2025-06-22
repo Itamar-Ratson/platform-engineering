@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: env-manager-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: env-manager-role
+rules:
+# Core resources
+- apiGroups: [""]
+  resources: ["namespaces", "pods", "services", "events", "secrets", "configmaps"]
+  verbs: ["get", "list", "create", "delete", "watch", "update", "patch"]
+# Apps resources
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "create", "delete", "watch", "update", "patch"]
+# Helm storage (secrets)
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["*"]
+  resourceNames: ["sh.helm.release.v1.*"]
+# All resources in any namespace (for helm)
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: env-manager-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: env-manager-role
+subjects:
+- kind: ServiceAccount
+  name: env-manager-sa
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: env-manager-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: env-manager-api
+  template:
+    metadata:
+      labels:
+        app: env-manager-api
+    spec:
+      serviceAccountName: env-manager-sa
+      containers:
+      - name: api
+        image: 779846824064.dkr.ecr.eu-north-1.amazonaws.com/env-manager-api:latest # Update to your ECR URI
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: HELM_NAMESPACE
+          value: "default"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: env-manager-api
+  namespace: default
+spec:
+  selector:
+    app: env-manager-api
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: ClusterIP  # Use LoadBalancer for direct access or ClusterIP with Ingress

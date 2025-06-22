@@ -1,0 +1,15 @@
+apiVersion: ecr.services.k8s.aws/v1alpha1
+kind: Repository
+metadata:
+  name: env-manager-api
+  namespace: default
+spec:
+  name: env-manager-api
+  imageScanningConfiguration:
+    scanOnPush: true
+  imageTagMutability: MUTABLE
+  tags:
+  - key: managed-by
+    value: ack
+  - key: purpose
+    value: environment-manager
